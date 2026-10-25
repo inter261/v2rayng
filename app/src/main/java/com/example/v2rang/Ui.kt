@@ -15,6 +15,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -63,7 +68,12 @@ fun Home(server: Server?, onToggle: () -> Unit) {
         Spacer(Modifier.height(24.dp))
         Box(Modifier.size(210.dp).clay(105.dp, 12.dp), contentAlignment = Alignment.Center) {
             Box(Modifier.size(150.dp).clay(75.dp, 8.dp, if (VpnState.running) c.mint else if (VpnState.status.startsWith("Meny")) c.tint else c.card).clip(CircleShape).clickable(onClick = onToggle), contentAlignment = Alignment.Center) {
-                Text("⏻", fontSize = 56.sp, color = if (VpnState.running) Color.White else c.accent)
+                val ic = if (VpnState.running) Color.White else c.accent
+                Box(Modifier.size(56.dp).drawBehind {
+                    val sw = 6.dp.toPx(); val s = size.minDimension
+                    drawArc(ic, -60f, 300f, false, Offset(sw, sw), Size(s - 2 * sw, s - 2 * sw), style = Stroke(sw, cap = StrokeCap.Round))
+                    drawLine(ic, Offset(s / 2, sw / 2), Offset(s / 2, s * 0.45f), strokeWidth = sw, cap = StrokeCap.Round)
+                })
             }
         }
         Spacer(Modifier.height(24.dp))
@@ -158,7 +168,7 @@ fun Settings(store: Store) {
 @Composable
 fun BottomBar(tab: Int, onTab: (Int) -> Unit) {
     val c = LocalClay.current
-    val items = listOf("⏻ Beranda", "☰ Server", "⚙ Atur")
+    val items = listOf("● Beranda", "☰ Server", "⚙ Atur")
     Row(Modifier.fillMaxWidth().padding(top = 12.dp).clay(24.dp, 8.dp).padding(8.dp)) {
         items.forEachIndexed { i, t ->
             Box(

@@ -1,6 +1,7 @@
 package com.example.v2rang
 
 import android.content.Context
+import android.util.Base64
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -9,7 +10,7 @@ import libv2ray.CoreCallbackHandler
 import libv2ray.CoreController
 import libv2ray.Libv2ray
 import java.io.File
-import java.util.UUID
+import java.security.SecureRandom
 
 object VpnState {
     var status by mutableStateOf("Terputus")
@@ -58,9 +59,12 @@ class XrayRunner(private val ctx: Context) {
                 if (!f.exists()) app.assets.open(n).use { i -> f.outputStream().use { o -> i.copyTo(o) } }
             }
             val sp = app.getSharedPreferences("v2rang", Context.MODE_PRIVATE)
-            val id = sp.getString("device_id", null)
-                ?: UUID.randomUUID().toString().also { sp.edit().putString("device_id", it).apply() }
-            Libv2ray.initCoreEnv(dir.absolutePath, id)
+            // Kunci XUDP wajib base64-url (tanpa padding) dari tepat 32 byte
+            val key = sp.getString("xudp_key", null) ?: Base64.encodeToString(
+                ByteArray(32).also { SecureRandom().nextBytes(it) },
+                Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP
+            ).also { sp.edit().putString("xudp_key", it).apply() }
+            Libv2ray.initCoreEnv(dir.absolutePath, key)
             inited = true
         }
     }
